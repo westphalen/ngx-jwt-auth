@@ -1,0 +1,18 @@
+{
+  "name": "ngx-jwt-auth",
+  "license": "MIT",
+  "version": "0.0.1",
+  "author": "Sune Westphalen",
+  "homepage": "https://github.com/westphalen/ngx-jwt-auth",
+  "repository": "https://github.com/westphalen/ngx-jwt-auth",
+  "description": "Simple JWT user authentication for Angular.",
+  "peerDependencies": {
+    "@angular/core": "^5.2.9",
+    "@angular/common": "^5.2.9",
+    "typescript": "^2.8.1",
+    "rxjs": "^5.5.8"
+  },
+  "main": "index.js",
+  "types": "index.d.js",
+  "private": false
+}
