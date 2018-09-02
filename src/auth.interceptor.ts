@@ -22,7 +22,8 @@ export class AuthInterceptor implements HttpInterceptor {
    * @returns {Observable<HttpEvent<any>>}
    */
   intercept(req: HttpRequest<any>, next: HttpHandler): Observable<HttpEvent<any>> {
-    let token = this.authState.getToken();
+    const token = this.authState.getToken();
+
     if (token) {
       req = req.clone({
         setHeaders: {
@@ -52,7 +53,8 @@ export class AuthInterceptor implements HttpInterceptor {
    * @param {HttpResponse | HttpErrorResponse} event
    */
   private handleResponseHeader(event: HttpResponse<any> | HttpErrorResponse): void {
-    let authorization = event.headers.get('Authorization');
+    const authorization = event.headers.get('Authorization');
+
     if (authorization) {
       this.authState.setToken(authorization);
     }

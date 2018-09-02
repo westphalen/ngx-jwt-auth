@@ -4,10 +4,12 @@ import 'rxjs/add/operator/do';
 import 'rxjs/add/operator/map';
 import 'rxjs/add/operator/delay';
 import 'rxjs/add/operator/first';
+import 'rxjs/add/operator/catch';
 import 'rxjs/add/operator/filter';
 import 'rxjs/add/operator/mergeMap';
 import 'rxjs/add/operator/distinctUntilChanged';
 import 'rxjs/add/observable/of';
+import 'rxjs/add/observable/defer';
 import 'rxjs/add/observable/fromPromise';
 import { BehaviorSubject } from 'rxjs/BehaviorSubject';
 import { Subject } from 'rxjs/Subject';
@@ -77,12 +79,12 @@ export class AuthService<T, R = AuthCredentials> {
    */
   constructor(public state: AuthState,
               @Optional() private backend?: AuthBackend<T, R>,
-              @Optional() private userProvider?: AuthUserService<T>) {
+              @Optional() public userProvider?: AuthUserService<T>) {
     console.log('Hello AuthService');
 
-    this.user$ = this.currentUser.asObservable();
-
     this.activated$ = this.activated.asObservable().distinctUntilChanged();
+
+    this.user$ = this.whenActivated().mergeMap(() => this.currentUser.asObservable());
 
     this.authenticated$ = this.user$.map((v) => v != null).distinctUntilChanged();
 
@@ -178,39 +180,48 @@ export class AuthService<T, R = AuthCredentials> {
   /**
    * Initialize auth, optionally retrieving the current user.
    *
-   * @param {any} userId
+   * @param {T} userObservable
    * @param {string} token
    * @returns {Observable<T>}
    */
-  public activate(userId: any, token?: string): Observable<T> {
-    if (token != null) {
-      this.state.setToken(token);
-    }
+  public activate(userObservable: T | Observable<T>, token?: string): Observable<T> {
+    return Observable.defer(() => {
 
-    if (userId == null) {
-      const alreadyActivated = this.activated.getValue();
+      if (token != null) {
+        console.debug('AuthService.activate: Setting token.', token);
 
-      if (alreadyActivated) {
-        // Activating a null user is only allowed once.
-        throw new Error('AuthService.activate: Can not activate `null` user.');
-      } else {
-        this.setUser(null);
+        this.state.setToken(token);
+      }
 
-        this.activated.next(true);
+      if (userObservable == null) {
+        const alreadyActivated = this.activated.getValue();
+
+        if (alreadyActivated) {
+          // Activating a null user is only allowed once.
+          throw new Error('AuthService.activate: Can not activate `null` user.');
+        } else {
+          this.setUser(null);
+
+          this.activated.next(true);
+
+          return Observable.of(null);
+        }
+      } else if (!(userObservable instanceof Observable)) {
+        userObservable = Observable.of(userObservable);
+      }
+
+      console.debug('AuthService.activate: Activating user.', userObservable);
+
+      return userObservable.catch((err) => {
+        console.error('AuthService.activate: Provided observable failed. Activating auth with null user.', err);
 
         return Observable.of(null);
-      }
-    } else if (this.userProvider == null) {
-      throw new Error('AuthService.activate: UserProvider dependency required.');
-    }
+      }).do((user) => {
+        this.setUser(user);
 
-    console.debug('AuthModule.AuthService.activate: Activating user.', userId);
-
-    return this.userProvider.find(userId).do((user) => {
-      this.setUser(user);
-
-      this.activated.next(true);
-    }, () => this.activated.next(true));
+        this.activated.next(true);
+      });
+    });
   }
 
   /**

@@ -1,7 +1,7 @@
 {
   "name": "ngx-jwt-auth",
   "license": "MIT",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "author": "Sune Westphalen",
   "homepage": "https://github.com/westphalen/ngx-jwt-auth",
   "repository": "https://github.com/westphalen/ngx-jwt-auth",
@@ -20,7 +20,7 @@
     "ng": "ng",
     "clean": "rm -Rf dist",
     "transpile": "npm run prepare && tsc --declaration",
-    "prepare": "npm run clean && cp -Rf src/ dist/ && cp package.dist.json dist/package.json",
+    "prepare": "npm run clean && cp -Rf src/ dist/ && cp package.dist.json dist/package.json && cp README.md dist/",
     "lint": "ng lint",
     "e2e": "ng e2e",
     "packagr": "ng-packagr -p package.json",

@@ -57,10 +57,16 @@ export class AuthState {
    * @param {string} token
    */
   public setToken(token: string): void {
-    let parts = token.split(' ');
-    if (parts.length > 0) {
-      token = parts.pop();
+    if (token === null) {
       this.token.next(token);
+    } else {
+      const parts = token.split(' ');
+
+      if (parts.length > 0) {
+        const cleanToken = parts.pop();
+
+        this.token.next(cleanToken);
+      }
     }
   }
 
